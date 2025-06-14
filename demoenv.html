@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Train-IT</title>
-    <link rel="stylesheet" href="trainit.css">
+    <link rel="stylesheet" href="trainIT.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
@@ -110,7 +110,7 @@
             function loadAmplitudeWithAntiFlicker() {
                 // Anti-flicker snippet from Amplitude documentation
                 (function(d, h){
-                    var apiKey = "4d655fcbcda0c92c13b5b0042bccdcca";
+                    var apiKey = "3625f63936e414d89d00e49a652943d0";
                     var timeout = 1000;
                     var id = "amp-exp-css";
                     
@@ -129,7 +129,7 @@
                             
                             // Load Web Experiment script with Segment integration
                             var sc = d.createElement("script");
-                            sc.src = "https://cdn.amplitude.com/script/" + apiKey + ".experiment.js?integration=segment";
+                            sc.src = "https://cdn.amplitude.com/script/3625f63936e414d89d00e49a652943d0.experiment.js?integration=segment";
                             sc.async = true;
                             sc.onerror = function () {
                                 if (st && st.parentNode) st.remove();
@@ -153,7 +153,7 @@
                     window.amplitude.add(sessionReplayTracking);
                     
                     // Initialize Amplitude Analytics
-                    window.amplitude.init('4d655fcbcda0c92c13b5b0042bccdcca', {
+                    window.amplitude.init('3625f63936e414d89d00e49a652943d0', {
                         fetchRemoteConfig: true,
                         autocapture: {
                             attribution: true,
@@ -245,7 +245,7 @@
     </script>
 
     <!-- Load Amplitude SDK Scripts -->
-    <script src="https://cdn.amplitude.com/script/4d655fcbcda0c92c13b5b0042bccdcca.js"></script>
+    <script src="https://cdn.amplitude.com/script/3625f63936e414d89d00e49a652943d0.js"></script>
     <script src="https://cdn.amplitude.com/libs/plugin-session-replay-browser-1.12.1-min.js.gz"></script>
     
     <!-- Initialize Amplitude when scripts are loaded -->
@@ -272,7 +272,7 @@
 
 	<section class="header">
         <nav>
-            <a href="/Users/giuliano.giannini/Desktop/Projects/Training Azienda/trainingorg.html" id="logo">
+            <a href="demoenv.html" id="logo">
                 <img src="Train-IT logo(1).png" alt="Logo Azienda">
             </a>
             <div class="nav-links">
