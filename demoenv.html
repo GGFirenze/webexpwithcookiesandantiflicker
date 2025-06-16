@@ -141,7 +141,7 @@
               h.appendChild(st);
               window.setTimeout(function () {st.remove()}, timeout);
               var sc = d.createElement("script");
-              sc.src = "https://cdn.amplitude.com/script/"+apiKey+".experiment.js";
+              sc.src = "https://cdn.amplitude.com/script/"+apiKey+".experiment.js?integration=segment";
               sc.async = true;
               sc.onerror = function () {st.remove()};
               h.insertBefore(sc, d.currentScript || h.lastChild);
