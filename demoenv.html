@@ -11,8 +11,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/914b751213.js" crossorigin="anonymous"></script>
     
-    <!-- Cookie Consent Banner Styles -->
+    <!-- Pre-consent Page Blur/Hide Styles -->
     <style>
+        /* Hide page content until consent decision is made */
+        .page-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .page-overlay.hide {
+            display: none;
+        }
+        
+        .loading-message {
+            text-align: center;
+            color: #2c3e50;
+        }
+        
+        .loading-message h2 {
+            margin-bottom: 10px;
+        }
+        
+        .loading-message p {
+            color: #7f8c8d;
+        }
+
+        /* Cookie Consent Banner Styles */
         .cookie-banner {
             position: fixed;
             bottom: 0;
@@ -84,6 +118,11 @@
                 width: 200px;
             }
         }
+
+        /* Anti-flicker for experiments - Moda's suggestion: less aggressive */
+        body.experiment-loading {
+            visibility: hidden;
+        }
     </style>
 
     <!-- Cookie Management and Conditional Amplitude Loading -->
@@ -106,47 +145,29 @@
             window.amplitudeConsent = getCookie('amplitude_consent');
             window.amplitudeInitialized = false;
 
-            // Load Amplitude scripts dynamically with anti-flicker
-            function loadAmplitudeScripts() {
-                console.log('Loading Amplitude scripts...');
-                
-                // Anti-flicker snippet FIRST
-                (function(d, h){
-                    var apiKey = "3625f63936e414d89d00e49a652943d0";
-                    var timeout = 1000;
-                    var id = "amp-exp-css";
-                    
-                    try {
-                        if (!d.getElementById(id)) {
-                            // Create anti-flicker style
-                            var st = d.createElement("style");
-                            st.id = id;
-                            st.innerText = "* { visibility: hidden !important; background-image: none !important; }";
-                            h.appendChild(st);
-                            
-                            // Remove anti-flicker after timeout
-                            window.setTimeout(function () {
-                                if (st && st.parentNode) st.remove();
-                            }, timeout);
-                            
-                            // Load Web Experiment script with Segment integration
-                            var sc = d.createElement("script");
-                            sc.src = "https://cdn.amplitude.com/script/" + apiKey + ".experiment.js?integration=segment";
-                            sc.async = true;
-                            sc.onerror = function () {
-                                if (st && st.parentNode) st.remove();
-                            };
-                            sc.onload = function() {
-                                if (st && st.parentNode) st.remove();
-                                console.log('Web Experiment loaded');
-                            };
-                            h.insertBefore(sc, d.currentScript || h.lastChild);
-                        }
-                    } catch(e) {
-                        console.error('Error loading Web Experiment:', e);
-                    }
-                })(document, document.head);
+            function hidePageOverlay() {
+                const overlay = document.getElementById('page-overlay');
+                if (overlay) {
+                    overlay.classList.add('hide');
+                    console.log('Page overlay hidden - showing content');
+                }
+            }
 
+            function showPageOverlay() {
+                const overlay = document.getElementById('page-overlay');
+                if (overlay) {
+                    overlay.classList.remove('hide');
+                    console.log('Page overlay shown - content hidden');
+                }
+            }
+
+            // Load Amplitude scripts with immediate anti-flicker
+            function loadAmplitudeScripts() {
+                console.log('Loading Amplitude scripts with anti-flicker...');
+                
+                // Apply anti-flicker IMMEDIATELY before loading scripts (Moda's suggestion)
+                document.body.classList.add('experiment-loading');
+                
                 // Load Amplitude Analytics SDK
                 const amplitudeScript = document.createElement('script');
                 amplitudeScript.src = 'https://cdn.amplitude.com/script/3625f63936e414d89d00e49a652943d0.js';
@@ -171,8 +192,18 @@
                 };
                 amplitudeScript.onerror = function() {
                     console.error('Failed to load Amplitude Analytics');
+                    // Remove anti-flicker and show page if scripts fail
+                    document.body.classList.remove('experiment-loading');
+                    hidePageOverlay();
                 };
                 document.head.appendChild(amplitudeScript);
+
+                // Safety timeout to remove anti-flicker after 2 seconds
+                setTimeout(function() {
+                    document.body.classList.remove('experiment-loading');
+                    hidePageOverlay();
+                    console.log('Anti-flicker timeout reached - showing page');
+                }, 2000);
             }
 
             // Initialize Amplitude Analytics (defined globally to avoid reference error)
@@ -200,24 +231,18 @@
                         },
                     });
                     
-                    // Initialize Web Experiment if available
-                    if (window.Experiment) {
-                        const experiment = window.Experiment.initializeWithAmplitudeAnalytics('');
-                        console.log('Web Experiment initialized');
-                    }
-                    
                     window.amplitudeInitialized = true;
                     console.log('Amplitude fully initialized and ready to track');
                     
-                    // Track initial page view
-                    window.amplitude.track('Page Viewed', {
-                        page_name: 'homepage',
-                        page_title: document.title,
-                        timestamp: new Date().toISOString()
-                    });
+                    // Remove anti-flicker and show page
+                    document.body.classList.remove('experiment-loading');
+                    hidePageOverlay();
                     
                 } catch(error) {
                     console.error('Error initializing Amplitude:', error);
+                    // Remove anti-flicker and show page even if initialization fails
+                    document.body.classList.remove('experiment-loading');
+                    hidePageOverlay();
                 }
             };
 
@@ -237,38 +262,40 @@
                 }
             }
 
-            // Global consent management functions
+            // Here we are placing our global consent management functions
             window.acceptCookies = function() {
-                // Cookie duration for test environment (7 days)
                 setCookie('amplitude_consent', 'accepted', 7);
                 window.amplitudeConsent = 'accepted';
                 hideCookieBanner();
                 
-                console.log('User accepted cookies - loading Amplitude');
+                console.log('User accepted cookies - loading Amplitude with anti-flicker');
                 loadAmplitudeScripts();
             };
             
             window.declineCookies = function() {
-                // Cookie duration for test environment (7 days)
                 setCookie('amplitude_consent', 'declined', 7);
                 window.amplitudeConsent = 'declined';
                 hideCookieBanner();
+                hidePageOverlay();
                 
-                console.log('User declined cookies - no tracking will occur');
+                console.log('User declined cookies - showing default version');
             };
 
-            // Check consent on page load
+            // We are going to check consent on page load
             document.addEventListener('DOMContentLoaded', function() {
                 console.log('Page loaded, checking consent:', window.amplitudeConsent);
                 
                 if (window.amplitudeConsent === 'accepted') {
-                    console.log('Previous consent found - loading Amplitude');
+                    console.log('Previous consent found - loading Amplitude with anti-flicker');
+                    hideCookieBanner();
                     loadAmplitudeScripts();
                 } else if (window.amplitudeConsent === 'declined') {
-                    console.log('User previously declined - no tracking');
+                    console.log('User previously declined - showing default version');
+                    hidePageOverlay();
                 } else {
-                    console.log('No consent found - showing banner');
+                    console.log('No consent found - showing banner with page overlay');
                     showCookieBanner();
+                    // This keeps the page overlay until the user decides
                 }
             });
 
@@ -277,7 +304,15 @@
 </head>
 	
 <body>
-    <!-- Cookie Consent Banner -->
+    <!-- This Page Overlay will be shown until consent decision is made -->
+    <div id="page-overlay" class="page-overlay">
+        <div class="loading-message">
+            <h2>🍪 Cookie Preferences Required</h2>
+            <p>Please make your cookie preference selection below to continue</p>
+        </div>
+    </div>
+
+    <!-- This is going to be our Cookie Consent Banner, nothing fancy -->
     <div id="cookie-banner" class="cookie-banner">
         <h3>🍪 Cookie Preferences</h3>
         <p>We use cookies and analytics to improve your experience and measure website performance. This includes Amplitude analytics and A/B testing experiments.</p>
@@ -308,6 +343,7 @@
             <h2>Adopting new technology is as vital to the business as it is scary for your employees. Fear no more and leverage highly tailored Technical Training to increase adoption from the get go.</h2>
             <br>
             <h2>Take action now and find out how we help businesses in an ever-changing Tech world keep their employees up to date with their latest software acquisitions.</h2>
+		<!-- I have added a span tag becuase in the future I may need or want to configure a feature flag -->
             <span id="hero-hand" style="display: none;">👉   </span>
             <a href="#home" class="hero-btn" id="hero-btnn">Explore our services!</a>
             <span id="hero-hand2" style="display: none;">  👈</span>
@@ -316,13 +352,11 @@
 	
     <section class="servizi">
         <div>
-            <!-- Your services content here -->
         </div>
 	</section>
 
-    <!-- Analytics Tracking Script -->
     <script type="text/javascript">
-        // Safe tracking function that respects user consent
+        // This is where safe tracking function is happening
         function safeTrack(eventName, properties) {
             if (window.amplitudeInitialized && 
                 window.amplitude && 
@@ -335,10 +369,9 @@
             }
         }
 
-        // Wait for DOM to be ready
+        // here we are waiting for DOM to be ready
         document.addEventListener('DOMContentLoaded', function() {
             
-            // Navigation tracking function
             function logNavButtonClick(buttonName) {
                 safeTrack('Nav Button Clicked', {
                     button_name: buttonName,
@@ -347,7 +380,6 @@
                 });
             }
 
-            // Add event listeners for navigation buttons
             const navElements = [
                 { id: 'homepage', name: 'home' },
                 { id: 'services', name: 'services' },
@@ -365,7 +397,6 @@
                 }
             });
 
-            // Hero button tracking
             const heroButton = document.getElementById('hero-btnn');
             if (heroButton) {
                 heroButton.addEventListener('click', function() {
