@@ -262,7 +262,7 @@
 
             // Here we are placing our global consent management functions
             window.acceptCookies = function() {
-                setCookie('amplitude_consent', 'accepted', 7);
+                setCookie('amplitude_consent', 'accepted', 1);
                 window.amplitudeConsent = 'accepted';
                 hideCookieBanner();
                 
@@ -271,7 +271,7 @@
             };
             
             window.declineCookies = function() {
-                setCookie('amplitude_consent', 'declined', 7);
+                setCookie('amplitude_consent', 'declined', 1);
                 window.amplitudeConsent = 'declined';
                 hideCookieBanner();
                 hidePageOverlay();
