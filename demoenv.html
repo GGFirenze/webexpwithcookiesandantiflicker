@@ -13,6 +13,393 @@
     
     <!-- This is a pre-consent option to blur the page until decision is made -->
     <style>
+        
+        .page-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .page-overlay.hide {
+            display: none;
+        }
+        
+        .loading-message {
+            text-align: center;
+            color: #2c3e50;
+        }
+        
+        .loading-message h2 {
+            margin-bottom: 10px;
+        }
+        
+        .loading-message p {
+            color: #7f8c8d;
+        }
+
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            z-index: 10000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+            display: none;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .cookie-banner.show {
+            display: block;
+        }
+        
+        .cookie-banner h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        
+        .cookie-banner p {
+            margin: 0 0 20px 0;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        
+        .cookie-banner .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .cookie-banner button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .cookie-banner button:hover {
+            background: #2980b9;
+        }
+        
+        .cookie-banner .decline {
+            background: #95a5a6;
+        }
+        
+        .cookie-banner .decline:hover {
+            background: #7f8c8d;
+        }
+        
+        @media (max-width: 768px) {
+            .cookie-banner .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            .cookie-banner button {
+                width: 200px;
+            }
+        }
+
+
+    </style>
+
+    <!-- This is the Amplitude Experiment Script -->
+
+
+    <script>
+        (function(d, h){
+          // TODO: Replace API_KEY with your API key.
+          var apiKey = "3625f63936e414d89d00e49a652943d0"; 
+          // TODO: Set a timeout in milliseconds for the anti-flicker.
+          var timeout = 1000; 
+          // Hides the page and loads the script. Shows page if script fails to load,
+          // otherwise the script shows the page.
+          var id = "amp-exp-css";
+          try {
+            if (!d.getElementById(id)) {
+              var st = d.createElement("style");
+              st.id = id;
+              st.innerText = "* { visibility: hidden !important; background-image: none !important; }";
+              h.appendChild(st);
+              window.setTimeout(function () {st.remove()}, timeout);
+              var sc = d.createElement("script");
+              sc.src = "https://cdn.amplitude.com/script/"+apiKey+".experiment.js";
+              sc.async = true;
+              sc.onerror = function () {st.remove()};
+              h.insertBefore(sc, d.currentScript || h.lastChild);
+            }
+          } catch {console.error(e)}
+        })(document, document.head);
+      </script>
+
+
+
+    <!-- Cookie Management and Conditional Amplitude Loading -->
+    <script>
+        (function() {
+            // Cookie utility functions
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
+            
+            function setCookie(name, value, days) {
+                const expires = new Date();
+                expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+                document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+            }
+
+            // Global variables
+            window.analyticsConsent = getCookie('analytics_consent');
+            window.segmentInitialized = false;
+
+            function hidePageOverlay() {
+                const overlay = document.getElementById('page-overlay');
+                if (overlay) {
+                    overlay.classList.add('hide');
+                    console.log('Page overlay hidden - showing content');
+                }
+            }
+
+                        function showPageOverlay() {
+                const overlay = document.getElementById('page-overlay');
+                if (overlay) {
+                    overlay.classList.remove('hide');
+                    console.log('Page overlay shown - content hidden');
+                }
+            }
+
+            // Initialize Segment Analytics when consent is given
+            function initializeSegment() {
+                if (window.segmentInitialized) {
+                    console.log('Segment already initialized');
+                    return;
+                }
+
+                try {
+                    console.log('Initializing Segment Analytics...');
+                    
+                    // Segment Analytics initialization snippet
+                    !function(){var i="analytics",analytics=window[i]=window[i]||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","screen","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware","register"];analytics.factory=function(e){return function(){if(window[i].initialized)return window[i][e].apply(window[i],arguments);var n=Array.prototype.slice.call(arguments);if(["track","screen","alias","group","page","identify"].indexOf(e)>-1){var c=document.querySelector("link[rel='canonical']");n.push({__t:"bpc",c:c&&c.getAttribute("href")||void 0,p:location.pathname,u:location.href,s:location.search,t:document.title,r:document.referrer})}n.unshift(e);analytics.push(n);return analytics}};for(var n=0;n<analytics.methods.length;n++){var key=analytics.methods[n];analytics[key]=analytics.factory(key)}analytics.load=function(key,n){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.setAttribute("data-global-segment-analytics-key",i);t.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r);analytics._loadOptions=n};analytics._writeKey="Fafu9KlEbAoLnBTttofbXOWOBX1eAhjW";;analytics.SNIPPET_VERSION="5.2.0";
+                    analytics.load("Fafu9KlEbAoLnBTttofbXOWOBX1eAhjW");
+                    analytics.page();
+                    }}();
+                    
+                    window.segmentInitialized = true;
+                    console.log('Segment Analytics initialized successfully');
+                    
+                } catch(error) {
+                    console.error('Error initializing Segment:', error);
+                }
+                
+                hidePageOverlay();
+            }
+
+ 
+
+
+
+            function showCookieBanner() {
+                const banner = document.getElementById('cookie-banner');
+                if (banner) {
+                    banner.classList.add('show');
+                    console.log('Cookie banner shown');
+                }
+            }
+
+            function hideCookieBanner() {
+                const banner = document.getElementById('cookie-banner');
+                if (banner) {
+                    banner.classList.remove('show');
+                    console.log('Cookie banner hidden');
+                }
+            }
+
+            // Here we are placing our global consent management functions
+            window.acceptCookies = function() {
+                setCookie('analytics_consent', 'accepted', 1);
+                window.analyticsConsent = 'accepted';
+                hideCookieBanner();
+                
+                console.log('User accepted cookies - initializing Segment Analytics');
+                initializeSegment();
+            };
+            
+            window.declineCookies = function() {
+                setCookie('analytics_consent', 'declined', 1);
+                window.analyticsConsent = 'declined';
+                hideCookieBanner();
+                hidePageOverlay();
+                
+                console.log('User declined cookies - showing default version');
+            };
+
+            // We are going to check consent on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Page loaded, checking consent:', window.analyticsConsent);
+                
+                if (window.analyticsConsent === 'accepted') {
+                    console.log('Previous consent found - initializing Segment Analytics');
+                    hideCookieBanner();
+                    initializeSegment();
+                } else if (window.analyticsConsent === 'declined') {
+                    console.log('User previously declined - showing default version');
+                    hidePageOverlay();
+                } else {
+                    console.log('No consent found - showing banner with page overlay');
+                    showCookieBanner();
+                    // This keeps the page overlay until the user decides
+                }
+            });
+
+        })();
+    </script>
+</head>
+    
+<body>
+    <!-- This Page Overlay will be shown until consent decision is made -->
+    <div id="page-overlay" class="page-overlay">
+        <div class="loading-message">
+            <h2>:cookie: Cookie Preferences Required</h2>
+            <p>Please make your cookie preference selection below to continue</p>
+        </div>
+    </div>
+
+    <!-- This is going to be our Cookie Consent Banner, nothing fancy -->
+    <div id="cookie-banner" class="cookie-banner">
+        <h3>:cookie: Cookie Preferences</h3>
+        <p>We use cookies and analytics to improve your experience and measure website performance. This includes Segment analytics for tracking user interactions.</p>
+        <p><strong>Do you consent to analytics tracking?</strong></p>
+        <div class="button-group">
+            <button onclick="acceptCookies()">:white_check_mark: Accept & Enable Analytics</button>
+            <button onclick="declineCookies()" class="decline">:x: Decline Analytics</button>
+        </div>
+    </div>
+
+    <section class="header">
+        <nav>
+            <a href="demoenv.html" id="logo">
+                <img src="Train-IT logo(1).png" alt="Logo Azienda">
+            </a>
+            <div class="nav-links">
+                <ul>
+                    <li><a href="#home" id="homepage">Home</a></li>
+                    <li><a href="#servizi" id="services">Services</a></li>
+                    <li><a href="#corsi" id="courses">Courses</a></li>
+                    <li><a href="#chi-siamo" id="about">About</a></li>
+                    <li><a href="#contatti" id="contacts">Contacts</a></li>
+                </ul>
+            </div>
+        </nav>
+        <div class="text-box">
+            <h1>Hire your tailored Technical Training services</h1>
+            <h2>Adopting new technology is as vital to the business as it is scary for your employees. Fear no more and leverage highly tailored Technical Training to increase adoption from the get go.</h2>
+            <br>
+            <h2>Take action now and find out how we help businesses in an ever-changing Tech world keep their employees up to date with their latest software acquisitions.</h2>
+        <!-- I have added a span tag becuase in the future I may need or want to configure a feature flag -->
+            <span id="hero-hand" style="display: none;">:point_right:   </span>
+            <a href="#home" class="hero-btn" id="hero-btnn">Explore our services!</a>
+            <span id="hero-hand2" style="display: none;">  :point_left:</span>
+        </div>
+    </section>
+    
+    <section class="servizi">
+        <div>
+        </div>
+    </section>
+
+    <script type="text/javascript">
+        // Safe tracking function for Segment Analytics
+        function safeTrack(eventName, properties) {
+            if (window.segmentInitialized && 
+                window.analytics && 
+                window.analyticsConsent === 'accepted') {
+                
+                window.analytics.track(eventName, properties);
+                console.log('Event tracked:', eventName, properties);
+            } else {
+                console.log('Tracking skipped - no consent or Segment not initialized');
+            }
+        }
+
+        // Example usage - you can add more tracking as needed
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            function logNavButtonClick(buttonName) {
+                safeTrack('Nav Button Clicked', {
+                    button_name: buttonName,
+                    source: "homepage",
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            const navElements = [
+                { id: 'homepage', name: 'home' },
+                { id: 'services', name: 'services' },
+                { id: 'courses', name: 'courses' },
+                { id: 'about', name: 'about' },
+                { id: 'contacts', name: 'contacts' }
+            ];
+
+            navElements.forEach(function(nav) {
+                const element = document.getElementById(nav.id);
+                if (element) {
+                    element.addEventListener('click', function() {
+                        logNavButtonClick(nav.name);
+                    });
+                }
+            });
+
+            const heroButton = document.getElementById('hero-btnn');
+            if (heroButton) {
+                heroButton.addEventListener('click', function() {
+                    safeTrack('Explore Services Button Clicked', {
+                        button_name: "hero_btn",
+                        source: "homepage",
+                        timestamp: new Date().toISOString()
+                    });
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+<!--<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" type="x-icon" href="Train-IT logo(1).png">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Train-IT</title>
+    <link rel="stylesheet" href="trainIT.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/914b751213.js" crossorigin="anonymous"></script>
+    
+    <!-- This is a pre-consent option to blur the page until decision is made
+    <style>
 	    
         .page-overlay {
             position: fixed;
@@ -123,7 +510,7 @@
         }
     </style>
 
-    <!-- Cookie Management and Conditional Amplitude Loading -->
+    <!-- Cookie Management and Conditional Amplitude Loading
     <script>
         (function() {
             // Cookie utility functions
@@ -302,7 +689,7 @@
 </head>
 	
 <body>
-    <!-- This Page Overlay will be shown until consent decision is made -->
+    <!-- This Page Overlay will be shown until consent decision is made
     <div id="page-overlay" class="page-overlay">
         <div class="loading-message">
             <h2>🍪 Cookie Preferences Required</h2>
@@ -310,7 +697,7 @@
         </div>
     </div>
 
-    <!-- This is going to be our Cookie Consent Banner, nothing fancy -->
+    <!-- This is going to be our Cookie Consent Banner, nothing fancy
     <div id="cookie-banner" class="cookie-banner">
         <h3>🍪 Cookie Preferences</h3>
         <p>We use cookies and analytics to improve your experience and measure website performance. This includes Amplitude analytics and A/B testing experiments.</p>
@@ -341,7 +728,7 @@
             <h2>Adopting new technology is as vital to the business as it is scary for your employees. Fear no more and leverage highly tailored Technical Training to increase adoption from the get go.</h2>
             <br>
             <h2>Take action now and find out how we help businesses in an ever-changing Tech world keep their employees up to date with their latest software acquisitions.</h2>
-		<!-- I have added a span tag becuase in the future I may need or want to configure a feature flag -->
+		<!-- I have added a span tag becuase in the future I may need or want to configure a feature flag
             <span id="hero-hand" style="display: none;">👉   </span>
             <a href="#home" class="hero-btn" id="hero-btnn">Explore our services!</a>
             <span id="hero-hand2" style="display: none;">  👈</span>
@@ -408,4 +795,4 @@
         });
     </script>
 </body>
-</html>
+</html>-->
